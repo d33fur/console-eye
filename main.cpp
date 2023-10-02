@@ -1,153 +1,102 @@
 #include <iostream>
-#include <ostream>
-//#include <istream>
-#include <vector>
-#include "VecMath.h"
+#include <stdio.h>
+#include <libavutil/imgutils.h>
+#include <libavcodec/avcodec.h>
+#include <libswscale/swscale.h>
+#include <opencv2/opencv.hpp>
+#include <ncurses.h>
 
-#if defined(_WIN32)
-#define WIN32_LEAN_AND_MEAN
-#define VC_EXTRALEAN
-#include <Windows.h>
-#elif defined(__linux__)
-#include <unistd.h>
-#include <sys/ioctl.h>
-
-//#include <term.h>
-#endif
-
-void getTerminalSize(int& width, int& height) {
-#if defined(_WIN32)
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-    width = (int)(csbi.srWindow.Right-csbi.srWindow.Left+1);
-    height = (int)(csbi.srWindow.Bottom-csbi.srWindow.Top+1);
-#elif defined(__linux__)
-    struct winsize w;
-    ioctl(fileno(stdout), TIOCGWINSZ, &w);
-    width = (int)(w.ws_col);
-    height = (int)(w.ws_row);
-#endif
-    std::cout << width << " " << height << std::endl;
+using namespace cv;
+/*
+int main(int argc, char** argv)
+{
+	    if (argc != 2) {
+		            printf("usage: DisplayImage.out <Image_Path>\n");
+			            return -1;
+				        }
+	        Mat image;
+		    image = imread(argv[1], 1);
+		        if (!image.data) {
+				        printf("No image data \n");
+					        return -1;
+						    }
+			    namedWindow("Display Image", WINDOW_AUTOSIZE);
+			        imshow("Display Image", image);
+				    waitKey(0);
+				        return 0;
 }
 
-char gradient[] = " .:!/r(l1Z4H9W8$@";
-int gradientSize = std::size(gradient) - 2;
+*/
+
+WINDOW *create_newwin(int height, int width, int starty, int startx);
+void destroy_win(WINDOW *local_win);
+
+int main(int argc, char *argv[]) {
+	
+
+if (argc != 2) {
+	printf("usage: DisplayImage.out <Image_Path//Vid_Path>\n");
+	return -1;
+}
+else
+	printf("\neverything is ok!\n\n\n\n");
 
 
-void ballFunction(int& width, int& height) {
-    float consoleSizeRatio = (float)(width / height);
-    float pixelRatio = 11.0f / 24.0f;
-    char* buf = new char[width * height];
+	
 
-    std::ostream& os = std::cout;
-    //std::array<char, 128> buffer;
-    //setbuf(buf, sizeof(buf));
-    //GetStdHandle(STD_OUTPUT_HANDLE);
-    //HANDLE hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-    //SetConsoleActiveScreenBuffer(hConsole);
-    //DWORD dwBytesWritten = 0;
+/*
+	WINDOW *my_win;
+	int startx, starty, width, height;
+	int ch;
+	
 
-    vec3 light = norm(vec3(-0.5, 0.5, -1.0));
-    vec3 spherePos = vec3(0, 3, 0);
-    for (int t = 0; t < 10000; t++) {
-        vec3 light = norm(vec3(-0.5, 0.5, -1.0));
-        vec3 spherePos = vec3(0, 3, 0);
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                vec2 uv = vec2(i, j) / vec2(width, height) * 2.0f - 1.0f;
-                uv.x *= consoleSizeRatio * pixelRatio;
-                vec3 ro = vec3(-6, 0, 0);
-                vec3 rd = norm(vec3(2, uv));
-                ro = rotateY(ro, 0.25);
-                rd = rotateY(rd, 0.25);
-                ro = rotateZ(ro, t * 0.01);
-                rd = rotateZ(rd, t * 0.01);
-                float diff = 1;
-                for (int k = 0; k < 5; k++) {
-                    float minIt = 99999;
-                    vec2 intersection = sphere(ro - spherePos, rd, 1);
-                    vec3 n = 0;
-                    float albedo = 1;
-                    if (intersection.x > 0) {
-                        vec3 itPoint = ro - spherePos + rd * intersection.x;
-                        minIt = intersection.x;
-                        n = norm(itPoint);
-                    }
-                    vec3 boxN = 0;
-                    intersection = box(ro, rd, 1, boxN);
-                    if (intersection.x > 0 && intersection.x < minIt) {
-                        minIt = intersection.x;
-                        n = boxN;
-                    }
-                    intersection = plane(ro, rd, vec3(0, 0, -1), 1);
-                    if (intersection.x > 0 && intersection.x < minIt) {
-                        minIt = intersection.x;
-                        n = vec3(0, 0, -1);
-                        albedo = 0.5;
-                    }
-                    if (minIt < 99999) {
-                        diff *= (dot(n, light) * 0.5 + 0.5) * albedo;
-                        ro = ro + rd * (minIt - 0.01);
-                        rd = reflect(rd, n);
-                    } else break;
-                }
-                int color = (int) (diff * 20);
-                color = clamp(color, 0, gradientSize);
-                char pixel = gradient[color];
-                buf[i + j * width] = pixel;
-            }
 
+
+	initscr();
+	cbreak();
+	keypad(stdscr, TRUE);
+	height = 3;
+	width = 10;
+	starty = (LINES - height) / 2;
+	startx = (COLS - width) / 2;
+	printw("Press F1 to exit");
+	refresh();
+	my_win = create_newwin(height, width, starty, startx);
+	while((ch = getch()) != KEY_F(1)) {
+		switch(ch) {
+			case KEY_LEFT:
+				destroy_win(my_win);
+				my_win = create_newwin(height, width, starty,--startx);
+				break;
+			case KEY_RIGHT:
+				destroy_win(my_win);
+				my_win = create_newwin(height, width, starty,++startx);
+				break;
+			case KEY_UP:
+				destroy_win(my_win);
+				my_win = create_newwin(height, width, --starty,startx);
+				break;
+			case KEY_DOWN:
+				destroy_win(my_win);
+				my_win = create_newwin(height, width, ++starty,startx);
+				break;
+ 	 		}
         }
-        buf[width * height - 1] = '\0';
-        os << buf << "\r";
-        //WriteConsoleOutputCharacter(hConsole, buf, width * height, { 0, 0 }, &dwBytesWritten);
-    }
-
-    //os <<  << "\r";
-    //struct winsize w;
-    //ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    /*
-    for(int i = 0; i < 100; i++) {
-
-        os << i << "\r";
-        os.flush();
-        sleep(1);
-    }
-     */
+	endwin();
+	return 0; */
 }
 
-void cubeFunction() {
-
+WINDOW *create_newwin(int height, int width, int starty, int startx) {
+	WINDOW *local_win;
+	local_win = newwin(height, width, starty, startx);
+	box(local_win, 0 , 0);
+        wrefresh(local_win);
+        return local_win;
 }
 
-void donutFunction() {
-
+void destroy_win(WINDOW *local_win) {
+	wborder(local_win, ' ', ' ', ' ',' ',' ',' ',' ',' ');
+	wrefresh(local_win);
+	delwin(local_win);
 }
 
-void picOrVidFunction() {
-
-}
-
-int main() {
-    std::cout << "Hello, this is a console viewer!" << std::endl;
-    std::cout << "Choose an object: 1 - ball, 2 - cube, 3 - donut, 4 - picture or video" << std::endl;
-    std::cout << "Write the object number: " << std::endl;
-    int width, height, answer;
-    getTerminalSize(width, height);
-    std::cin >> answer;
-    switch(answer) {
-        case 1:
-            ballFunction(width, height);
-            break;
-        case 2:
-            cubeFunction();
-            break;
-        case 3:
-            donutFunction();
-            break;
-        case 4:
-            picOrVidFunction();
-            break;
-    }
-    return 0;
-}
