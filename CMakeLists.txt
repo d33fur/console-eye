@@ -1,27 +1,17 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.10)
 
-project(untitled2)
+project(eye)
 
-set(CMAKE_CXX_STANDARD 20)
-
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(OpenCV REQUIRED)
-include_directories(${OpenCV_INCLUDE_DIRS})
-
 find_package(Curses REQUIRED)
+
+include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${CURSES_INCLUDE_DIR})
 
-#find_package(PkgConfig REQUIRED)
-#pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
-#        libavdevice
-#        libavfilter
-#        libavformat
-#        libavcodec
-#        libswresample
-#        libswscale
-#       libavutil)
+add_executable(${PROJECT_NAME} main.cpp)
 
-add_executable(untitled2 main.cpp)
-target_link_libraries(untitled2 ${OpenCV_LIBS})
-target_link_libraries(untitled2 ${CURSES_LIBRARIES})
-#install()
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
+target_link_libraries(${PROJECT_NAME} ${CURSES_LIBRARIES})
